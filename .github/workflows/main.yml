@@ -1,7 +1,7 @@
 name: Trading Bot
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Runs every 5 minutes
+    - cron: '0 * * * *'  # Changed to run every hour instead of every 5 minutes
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
@@ -20,13 +20,15 @@ jobs:
         
       - name: Run trading bot
         run: python run_trader.py
+        env:
+          TZ: 'UTC'  # Added timezone setting for consistent hourly data
         
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add paper_account.json trade_results.json
-          git commit -m "Update trading results" || exit 0
+          git add paper_account.json trade_results.json trade_log.json
+          git commit -m "Update trading results [1H]" || exit 0
           
       - name: Push changes
         uses: ad-m/github-push-action@master
