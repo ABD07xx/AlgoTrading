@@ -40,7 +40,8 @@ class AlgoTrader:
         """Fetch historical data from Yahoo Finance"""
         ticker = yf.Ticker(self.symbol)
         end = datetime.now()
-        start = end - timedelta(days=5)  # 5 days of history
+        # Increased history for 1H timeframe
+        start = end - timedelta(days=30)  # 30 days of history for better analysis
         df = ticker.history(start=start, end=end, interval=self.timeframe)
         
         if df.empty:
@@ -292,7 +293,7 @@ class AlgoTrader:
         print(f"ATR Period: {self.config['atr_period']}")
         print(f"Risk Percent: {self.risk_percent}%")
         
-        # Calculate sleep time based on timeframe
+        # Updated sleep times for different timeframes
         sleep_times = {
             '1m': 60,
             '5m': 300,
@@ -300,8 +301,12 @@ class AlgoTrader:
             '30m': 1800,
             '1h': 3600,
             '4h': 14400,
+            '1d': 86400
         }
-        sleep_time = sleep_times.get(self.timeframe, 3600)
+        
+        # For 1H timeframe, we'll check a few minutes before the hour
+        base_sleep_time = sleep_times.get(self.timeframe, 3600)
+        check_before = 180  # Check 3 minutes before the hour
         
         while True:
             try:
@@ -336,8 +341,13 @@ class AlgoTrader:
                     print(f"P&L %: {pnl_info['pnl_percentage']:.2f}%")
                     print("========================\n")
                 
-                print(f"Waiting {self.timeframe} for next check...")
-                time.sleep(sleep_time)
+                # Calculate sleep time to wake up before next hour
+                now = datetime.now()
+                next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                sleep_seconds = (next_hour - now).total_seconds() - check_before
+                
+                print(f"Waiting until next hourly candle (sleeping for {sleep_seconds:.0f} seconds)...")
+                time.sleep(max(60, sleep_seconds))  # Sleep at least 60 seconds
                 
             except Exception as e:
                 print(f"Error occurred: {str(e)}")
