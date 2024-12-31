@@ -11,7 +11,7 @@ CONFIG = {
     'rsi_period': 14,        # Standard RSI
     'rsi_overbought': 70,    # Standard RSI levels
     'rsi_oversold': 30,
-    'atr_period': 14,        # Added ATR period
+    'atr_period': 14,
     
     'ema_fast': 50,          # Slower EMAs for trend confirmation
     'ema_slow': 200,
