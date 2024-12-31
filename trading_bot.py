@@ -19,17 +19,27 @@ class AlgoTrader:
         
     def load_account_state(self, initial_balance):
         """Load or create paper trading account"""
-        if os.path.exists('paper_account.json'):
-            with open('paper_account.json', 'r') as f:
-                return json.load(f)
-        else:
-            account = {
-                'balance': initial_balance,
-                'positions': {},
-                'trade_history': []
-            }
-            self.save_account_state(account)
-            return account
+        try:
+            if os.path.exists('paper_account.json'):
+                with open('paper_account.json', 'r') as f:
+                    data = f.read().strip()  # Remove any whitespace
+                    if not data:  # If file is empty
+                        return self.create_initial_account(initial_balance)
+                    return json.loads(data)
+            return self.create_initial_account(initial_balance)
+        except json.JSONDecodeError:
+            print("Error reading account state, creating new account")
+            return self.create_initial_account(initial_balance)
+    
+    def create_initial_account(self, initial_balance):
+        """Create a new account with initial balance"""
+        account = {
+            'balance': initial_balance,
+            'positions': {},
+            'trade_history': []
+        }
+        self.save_account_state(account)
+        return account
     
     def save_account_state(self, account_state):
         """Save account state to file"""
