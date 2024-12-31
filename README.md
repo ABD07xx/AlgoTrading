@@ -27,11 +27,6 @@ An automated cryptocurrency trading bot built in Python that implements technica
 ## Installation
 
 1. Clone the repository:
-bash
-git clone https://github.com/yourusername/crypto-trading-bot.git
-cd crypto-trading-bot
-
-
 2. Install required dependencies:
 
 bash
