@@ -292,7 +292,45 @@ class AlgoTrader:
             }
         return None
     
-    def run(self):
+    def run_once(self):
+        """Execute a single iteration of the trading logic"""
+        try:
+            print("\nFetching new market data...")
+            self.df = self.get_historical_data()
+            
+            # Verify we got new data
+            current_time = self.df.index[-1]
+            print(f"Latest data timestamp: {current_time}")
+            
+            self.df = self.calculate_indicators(self.df)
+            self.df = self.generate_signals(self.df)
+            
+            # Check for signals
+            current_signal = self.df['signal'].iloc[-1]
+            current_price = float(self.df['Close'].iloc[-1])
+            
+            if current_signal != 0:
+                print(f"Signal detected: {'BUY' if current_signal == 1 else 'SELL'}")
+                self.execute_trade(current_signal, current_price, current_time)
+            else:
+                print("No trading signal")
+            
+            # Calculate and display P&L for open positions
+            pnl_info = self.calculate_open_position_pnl(current_price)
+            if pnl_info:
+                print("\n=== Open Position P&L ===")
+                print(f"Entry Price: ₹{pnl_info['entry_price']:.2f}")
+                print(f"Current Price: ₹{pnl_info['current_price']:.2f}")
+                print(f"Position Size: {pnl_info['position_size']:.8f}")
+                print(f"Unrealized P&L: ₹{pnl_info['unrealized_pnl']:.2f}")
+                print(f"P&L %: {pnl_info['pnl_percentage']:.2f}%")
+                print("========================\n")
+                
+        except Exception as e:
+            print(f"Error occurred: {str(e)}")
+            raise e
+
+    def run(self, continuous_mode=True):
         """Main trading loop"""
         print(f"Starting paper trading with ₹{self.account['balance']:,.2f}")
         print(f"Trading {self.symbol} on {self.timeframe} timeframe")
@@ -303,6 +341,9 @@ class AlgoTrader:
         print(f"ATR Period: {self.config['atr_period']}")
         print(f"Risk Percent: {self.risk_percent}%")
         
+        if not continuous_mode:
+            return self.run_once()
+            
         # Updated sleep times for different timeframes
         sleep_times = {
             '1m': 60,
